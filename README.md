@@ -27,35 +27,83 @@
 
 Apache Amaterasu is an open-source, deployment tool for data pipelines. Amaterasu allows developers to write and easily deploy data pipelines, and clusters manage their configuration and dependencies.
 
-## Download
+## Installation
 
-For this preview version, we have packaged amaterasu nicely for you to just [download](https://s3-ap-southeast-2.amazonaws.com/amaterasu/amaterasu.tgz) and extract.
-Once you do that, you are just a couple of easy steps away from running your first job.
+In order to be able to install Apache Amaterasu and use it, please see that you have the following installed on the target machine:
+
+* Java 1.8+
+* libffi
+* python3
+* python3-devel
+
+You will need [pip](https://pip.pypa.io/en/stable/installing/) installed on your machine.
+
+Finally, to install Apache Amaterasu:
+
+```
+pip install amaterasu
+```
+
+> **Note** - Since we can't upload the Apache Amaterasu process JAR into PyPi, we only published the CLI itself.
+When you install the CLI, it fetches the JAR from our server.
 
 ## Creating a dev/test Mesos cluster
 
 We have also created a Mesos cluster you can use to test Amaterasu or use for development purposes.
 For more details, visit the [amaterasu-vagrant](https://github.com/shintoio/amaterasu-vagrant) repo
 
-## Configuration
-
-Configuring amaterasu is very simple. Before running amaterasu, open the `amaterasu.properties` file in the top-level amaterasu directory, and verify the following properties:
-
-| property   | Description                | Default value  |
-| ---------- | -------------------------- | -------------- |
-| zk         | The ZooKeeper connection<br> string to be used by<br> amaterasu | 192.168.33.11  |
-| master     | The clusters' Mesos master | 192.168.33.11  |
-| user       | The user that will be used<br> to run amaterasu | root           |
-
 ## Running a Job
 
-To run an amaterasu job, run the following command in the top-level amaterasu directory:
+First, you need an Amaterasu-compatible git repository.
+Our CLI offers the ability to generate a skeleton of an Apache Amaterasu compatible repository. And here is how:
+```bash
+cd <directory to designate as the Amaterasu repository>
+ama init
 
-```
-ama-start.sh --repo="https://github.com/shintoio/amaterasu-job-sample.git" --branch="master" --env="test" --report="code" 
+# OR
+ama init <relative or absolute path>
+
+# e.g.
+cd my-ama-repo
+ama init
+
+# OR
+ama init my-ama-repo
+
+# OR
+ama init /home/myuser/somedir/someotherdir/my-ama-repo
 ```
 
-We recommend you either fork or clone the job sample repo and use that as a starting point for creating your first job.
+Once you have the repository at hand, upload it to a remote host (e.g. - github)
+
+
+Finally, to run the job:
+```
+ama run <repository_url>
+
+# e.g.
+
+ama run https://github.com/shintoio/amaterasu-job-sample.git
+
+# By default , we use the master branch, but if you want another branch:
+
+ama run <repository_url> -b <your_branch>
+
+# e.g.
+
+ama run https://github.com/shintoio/amaterasu-job-sample.git -b python-support
+
+# We also support different environments, we use the "default" environment by default.
+# To use another environment:
+ama run <repository_url> -e <environment>
+
+# e.g. 
+ama run https://github.com/shintoio/amaterasu-job-sample.git -e test
+```
+For more CLI options, use the builtin help (ama help)
+
+It is highly recommended that you take a peek at our [sample job repository](https://github.com/shintoio/amaterasu-job-sample.git) before using Amaterasu.
+
 
 # Apache Amaterasu Developers Information 
 
