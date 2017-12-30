@@ -99,6 +99,7 @@ object PySparkRunner {
     if (env.configuration.contains("pysparkPath")) {
       pysparkPath = env.configuration("pysparkPath")
     } else {
+      // TODO: was ist das?
       pysparkPath = "spark-2.1.1-bin-hadoop2.7/bin/spark-submit"
     }
     val proc = Process(Seq(pysparkPath, intpPath, port.toString), None,

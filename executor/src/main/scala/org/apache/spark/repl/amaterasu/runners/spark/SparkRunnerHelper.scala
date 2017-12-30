@@ -119,7 +119,6 @@ object SparkRunnerHelper extends Logging {
       .set("spark.submit.deployMode", "client")
       .set("spark.hadoop.validateOutputSpecs", "false")
       .set("spark.logConf", "true")
-      .set("spark.submit.pyFiles", "miniconda/pkgs")
       .setJars(jars)
 
 
@@ -128,6 +127,7 @@ object SparkRunnerHelper extends Logging {
         conf.set("spark.executor.uri", s"http://$getNode:${config.Webserver.Port}/spark-2.1.1-bin-hadoop2.7.tgz")
           .set("spark.master", env.master)
           .set("spark.home", s"${scala.reflect.io.File(".").toCanonical.toString}/spark-2.1.1-bin-hadoop2.7")
+          .set("spark.submit.pyFiles", "./miniconda/pkgs")
       case "yarn" =>
         conf.set("spark.home", config.YARN.spark.home)
           .set("spark.master", "yarn")
@@ -138,6 +138,8 @@ object SparkRunnerHelper extends Logging {
           .set("spark.shuffle.service.enabled", "true")
           .set("spark.eventLog.enabled", "false")
           .set("spark.history.fs.logDirectory", "hdfs:///spark2-history/")
+          // TODO: this doesn't work on yarn
+          .set("spark.submit.pyFiles", "./miniconda/pkgs")
       case _ => throw new Exception(s"mode ${config.mode} is not legal.")
     }
 

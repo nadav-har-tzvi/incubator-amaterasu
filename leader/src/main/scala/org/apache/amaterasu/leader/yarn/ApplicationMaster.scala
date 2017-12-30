@@ -191,9 +191,10 @@ class ApplicationMaster extends AMRMClientAsync.CallbackHandler with Logging {
         val execData = DataLoader.getExecutorData(env, config)
 
         val ctx = Records.newRecord(classOf[ContainerLaunchContext])
-        val commands: List[String] = List[String](
-            "/bin/bash ./miniconda.sh -b -p $PWD/miniconda && ",
-
+        val commands = List[String](
+            s"/bin/bash ./miniconda.sh -b -p ./miniconda " +
+              s"1> ${ApplicationConstants.LOG_DIR_EXPANSION_VAR}/stdout " +
+              s"2> ${ApplicationConstants.LOG_DIR_EXPANSION_VAR}/stderr && " +
           s"java -cp executor.jar:${config.YARN.spark.home}/jars/* " +
             "-Dscala.usejavacp=true " +
             "org.apache.amaterasu.executor.yarn.executors.ActionsExecutorLauncher " +
@@ -203,7 +204,7 @@ class ApplicationMaster extends AMRMClientAsync.CallbackHandler with Logging {
         )
 
         log.info("Running container id {}.", container.getId.getContainerId)
-        log.debug("Running container id {} with command '{}'", container.getId.getContainerId, commands.get(1))
+        log.debug("Running container id {} with command '{}'", container.getId.getContainerId, commands.get(0))
         ctx.setCommands(commands)
         ctx.setLocalResources(Map[String, LocalResource](
           "executor.jar" -> executorJar,
