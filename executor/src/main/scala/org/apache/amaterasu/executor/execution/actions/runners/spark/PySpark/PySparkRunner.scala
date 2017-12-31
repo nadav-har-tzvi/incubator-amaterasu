@@ -28,11 +28,8 @@ import org.apache.spark.SparkEnv
 import org.apache.spark.sql.SparkSession
 
 import scala.sys.process.Process
-import scala.io.Source
 
-/**
-  * Created by roadan on 9/2/16.
-  */
+
 class PySparkRunner extends AmaterasuRunner with Logging {
 
   var proc: Process = _
@@ -102,6 +99,7 @@ object PySparkRunner {
     if (env.configuration.contains("pysparkPath")) {
       pysparkPath = env.configuration("pysparkPath")
     } else {
+      // TODO: was ist das?
       pysparkPath = "spark-2.1.1-bin-hadoop2.7/bin/spark-submit"
     }
     val proc = Process(Seq(pysparkPath, intpPath, port.toString), None,
