@@ -5,6 +5,7 @@ import errno
 from tests.compat import *
 from amaterasu.cli.compat import *
 from amaterasu.cli.common import Resources
+import docker
 
 def handleRemoveReadonly(func, path, exc):
     excvalue = exc[1]
@@ -16,6 +17,8 @@ def handleRemoveReadonly(func, path, exc):
 
 
 def before_all(context):
+    client = docker.Client()
+    client.create_container('atmoz/sftp', command='test:test:::home', ports=['22:22'], name='test_sftp')
     context.test_resources = Resources(os.path.join(os.getcwd(), 'tests'))
     context.first_run = False  # overridden in run_pipeline_unit.feature::It is the first time the user runs a pipeline
 
@@ -36,3 +39,8 @@ def before_scenario(context, scenario):
 
 def after_scenario(context, scenario):
     shutil.rmtree(os.path.abspath('tmp'), onerror=handleRemoveReadonly)
+
+
+def after_all(context):
+    client = docker.Client()
+    client.remove_container("test_sftp")

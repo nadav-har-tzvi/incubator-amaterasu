@@ -1,5 +1,5 @@
 behave==1.2.5
-cffi==1.11.1
+cffi==1.11.4
 colorama==0.3.9
 parse==1.8.2
 parse-type==0.4.2
@@ -15,3 +15,5 @@ netifaces
 multipledispatch
 GitPython
 docopt
+paramiko
+docker-py
