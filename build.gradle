@@ -24,6 +24,7 @@ allprojects {
 project(':leader')
 project(':common')
 project(':executor')
+project(':cli')
 
 task buildHomeDir() {
     dependsOn subprojects.collect { getTasksByName('shadowJar', true) }

@@ -11,8 +11,8 @@ Options:
 """
 
 from .base import BaseRepositoryHandler, git_parser, HandlerError
-from amaterasu.cli import common
-from amaterasu.cli.repository import AmaRepository
+from .. import common
+from ..repository import AmaRepository
 
 
 class InitRepositoryHandler(BaseRepositoryHandler):
@@ -78,3 +78,6 @@ class InitRepositoryHandler(BaseRepositoryHandler):
         repo.commit()
         print("Amaterasu job repository set up successfully")
 
+
+def get_handler(**kwargs):
+    return InitRepositoryHandler

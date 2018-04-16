@@ -90,3 +90,7 @@ class UpdateRepositoryHandler(BaseRepositoryHandler, MakiMixin, ValidateReposito
         sources_not_in_maki = existing_sources.difference(maki_sources)
         self._write_sources_to_fs(sources_not_in_fs)
         self._handle_sources_not_on_maki(sources_not_in_maki)
+
+
+def get_handler(**kwargs):
+    return UpdateRepositoryHandler

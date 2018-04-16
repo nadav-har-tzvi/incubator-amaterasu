@@ -5,6 +5,7 @@ Usage: ama <command> [<args>...]
 
 Builtin commands:
     init        Start a new Amaterasu compliant repository
+    config      Configure Amaterasu settings
     update      Update an existing Amaterasu repository based on a maki file
     run         Run an Amaterasu pipeline
 
@@ -12,16 +13,14 @@ Builtin commands:
 
 See 'ama <command> --help' for more detailed information.
 """
-from amaterasu.cli.handlers.base import BaseHandler
-
 __version__ = '0.2.0-incubating'
 
 import colorama
 import pkgutil
 import importlib
-import inspect
-from docopt import docopt
 from .cli import common, consts, handlers
+from docopt import docopt
+
 
 colorama.init()
 lines = []
@@ -46,6 +45,7 @@ def load_handlers():
         if not name.endswith('base')
     }
 
+
 def extract_args(args):
     """
     Cleans docopt's output, collects the <arg> arguments, strips the "<" ">" and returns an equivalent dictionary
@@ -60,31 +60,32 @@ def extract_args(args):
         if k.startswith('<')
     }
 
-def find_handler(handler_module):
+
+def find_handler(handler_module, **kwargs):
     """
     Looks for a handler class that inherits from BaseHandler. We assume that the class with the longest MRO is
     the one we look for
     :param handler_module: A handler module loaded by importlib
     :return:
     """
-    members = inspect.getmembers(handler_module)
-    handler_candidates = []
-    for member_name, member_obj in members:
-        if hasattr(member_obj, '__mro__') and BaseHandler in member_obj.__mro__:
-            handler_candidates.append((member_obj, member_obj.__mro__))
-    return max(handler_candidates, key=lambda c: len(c[1]))[0]
-
+    try:
+        return handler_module.get_handler(**kwargs)
+    except AttributeError:
+        raise AttributeError("Module {} does not define a get_handler function".format(handler_module.__name__))
 
 
 def main():
     doc = __doc__.format(amaterasu_logo=desc, additional_commands='')  # TODO: implement additional_commands
     root_args = docopt(doc, version=__version__, options_first=True)
-    handlers = load_handlers()
+    handler_modules = load_handlers()
     command = root_args['<command>']
-    if command in handlers:
-        handler_vars = vars(handlers[command])
+    if command in handler_modules:
+        handler_vars = vars(handler_modules[command])
         cmd_args = docopt(handler_vars['__doc__'], version=handler_vars.get('__version__', __version__))
-        handler = find_handler(handlers[command])
+        handler = find_handler(handler_modules[command], **cmd_args)
         handler(**extract_args(cmd_args)).handle()
     else:
         print(doc)
+
+if __name__ == '__main__':
+    main()

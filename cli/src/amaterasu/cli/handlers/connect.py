@@ -13,10 +13,28 @@ Options:
 
 import os
 import getpass
+import sys
+
 import paramiko
 
 from .base import BaseHandler
-from ..utils import interactive
+
+def init_configuration():
+    print('Please fill in the following details to create a new configuraiton file:')
+    platform = input('Execution platform [mesos, yarn]:').strip()
+    config = sys.modules[__name__]
+    try:
+        handler = getattr(config, platform)
+        handler().handle()
+    except AttributeError:
+        print('Unrecognized option: {}'.format(platform))
+
+
+def _check_configuration():
+    prop_file = os.path.expanduser('~/.amaterasu/amaterasu.properties')
+    if not os.path.exists(prop_file):
+        print("Amaterasu execution configuration file doesn't exist")
+        init_configuration()
 
 
 class ConnectHandler(BaseHandler):

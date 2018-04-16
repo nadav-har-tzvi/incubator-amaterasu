@@ -2,7 +2,9 @@ import abc
 import os
 import sys
 import yaml
-from six.moves import configparser, cStringIO
+from six.moves import configparser
+
+__version__ = '0.2.0-incubating'
 
 git_parser = configparser.ConfigParser()
 git_parser.read(os.path.expanduser('~/.gitconfig'))
@@ -182,3 +184,5 @@ class ValidateRepositoryMixin(object):
             errors.append(ValidationError('Repository has no env/default directory'))
         if errors:
             raise HandlerError(inner_errors=errors)
+
+

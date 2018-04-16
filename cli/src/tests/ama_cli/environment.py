@@ -17,8 +17,9 @@ def handleRemoveReadonly(func, path, exc):
 
 
 def before_all(context):
-    client = docker.Client()
-    client.create_container('atmoz/sftp', command='test:test:::home', ports=['22:22'], name='test_sftp')
+    client = docker.from_env()
+    if not client.containers.list(filters={'name':'test_sftp'}, all=True):
+        client.containers.run('atmoz/sftp', command='test:test:::home', name='test_sftp')
     context.test_resources = Resources(os.path.join(os.getcwd(), 'tests'))
     context.first_run = False  # overridden in run_pipeline_unit.feature::It is the first time the user runs a pipeline
 
@@ -42,5 +43,5 @@ def after_scenario(context, scenario):
 
 
 def after_all(context):
-    client = docker.Client()
-    client.remove_container("test_sftp")
+    client = docker.from_env()
+    client.containers.stop("test_sftp")

@@ -4,13 +4,13 @@ setup(
     name='amaterasu',
     version='0.2.0',
     packages=find_packages(),
-    url='https://github.com/shintoio/amaterasu',
+    url='https://github.com/apache/incubator-amaterasu',
     license='Apache License 2.0 ',
-    author='Apache Amaterasu',
+    author='Apache Amaterasu (incubating)',
     author_email="dev@amaterasu.incubator.apache.org",
-    setup_requires=['wget'],
-    description='Apache Amaterasu (Incubating) is an open source, configuration managment and deployment framework for big data pipelines',
+    description='Apache Amaterasu (incubating) is an open source, configuration managment and deployment framework for big data pipelines',
     install_requires=['colorama', 'GitPython', 'six', 'PyYAML', 'netifaces', 'multipledispatch', 'docopt', 'paramiko'],
+    tests_require=['behave'],
     python_requires='!=3.0.*, !=3.1.*, !=3.2.*, <4',
     entry_points={
         'console_scripts': [
