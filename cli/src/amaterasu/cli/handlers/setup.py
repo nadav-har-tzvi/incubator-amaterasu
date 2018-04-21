@@ -146,7 +146,7 @@ class BaseConfigurationHandler(BaseHandler, metaclass=ConfigurationMeta):
     cluster_manager = None
     amaterasu_home = PathField(input_text='Amaterasu home directory', default='/ama', name='amaterasu.home')
     zk = IPField(required=True, input_text='Zookeeper IP', default=get_current_ip)
-    master = IPField(required=True, input_text='Mesos master IP', default=get_current_ip)
+
     user = TextField(required=True, default=getpass.getuser())
     spark_version = TextField(default='2.2.1-bin-hadoop2.7',
                               input_text='Spark version', name='spark.version')
@@ -243,7 +243,8 @@ class BaseConfigurationHandler(BaseHandler, metaclass=ConfigurationMeta):
 
 
 class MesosConfigurationHandler(BaseConfigurationHandler):
-
+    master = IPField(required=True, input_text='Mesos master IP',
+                     default=get_current_ip)
     amaterasu_port = NumericField(default=8000, input_text='Amaterasu server port', name='webserver.port')
     amaterasu_root = TextField(default='dist', input_text='Amaterasu server root path', name='webserver.root')
     cluster_manager = 'mesos'

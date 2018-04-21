@@ -117,13 +117,15 @@ class RunYarnPipelineHandler(BaseRunPipelineHandler):
             "--home",
             self.amaterasu_root,
             "--repo",
-            self.args['repository'][0],
+            self.args['repository'],
             "--env",
-            self.args['env'],
+            self.args.get('env', 'default'),
             "--report",
-            self.args['report'],
+            self.args.get('report', 'code'),
             "--branch",
-            self.args['branch']
+            self.args.get('branch', 'master'),
+            "--config-home",
+            os.path.expanduser("~/.amaterasu")
         ]
         if self.args['job_id']:
             command_params.extend(["--job-id", self.args['job_id']])
