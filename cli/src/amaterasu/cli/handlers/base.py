@@ -186,3 +186,16 @@ class ValidateRepositoryMixin(object):
             raise HandlerError(inner_errors=errors)
 
 
+class PropertiesFile(dict):
+
+    def __init__(self, path, **kwargs) -> None:
+        abs_path = os.path.expanduser(path) if path.startswith('~') else os.path.abspath(path)
+        with open(abs_path, 'r') as f:
+            for i, line in enumerate(f.read().splitlines()):
+                try:
+                    var, value = line.split('=')
+                    self[var.strip()] = value.strip()
+                except ValueError:
+                    print('Improperly Configured: bad form of line {} in amaterasu.properties'.format(i))
+
+        super().__init__(**kwargs)

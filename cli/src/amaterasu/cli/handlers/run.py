@@ -4,20 +4,20 @@ You have to have Mesos installed on the same machine where Amaterasu is installe
 IMPORTANT:
 In the future we plan to enable remote execution, hence you will be required to connect to a cluster prior to executing this command
 
-Usage: ama run <repository_url>
+Usage: ama run <repository_url> [-e <env>] [-r <report>] [-b <branch>] [-j <job-id>] [-n <name>]
 
 Options:
-    -h --help       Show this screen
-    -e --env        The environment to use for running this job [default: default]
-    -r --report     Verbosity, this controls how much of the job's logs is propagated to the CLI [default: none]
-    -b --branch     What branch to use when running this job [default: master]
-    -j --job-id     Provide a job-id to resume a paused job.
-    -n --name       Provider a name for the job.
+    -h --help               Show this screen
+    -e --env=<env>          The environment to use for running this job [default: default]
+    -r --report=<report>    Verbosity, this controls how much of the job's logs is propagated to the CLI [default: none]
+    -b --branch=<branch>    What branch to use when running this job [default: master]
+    -j --job-id=<job-id>    Provide a job-id to resume a paused job.
+    -n --name=<name>        Provider a name for the job.
 """
-from distutils.sysconfig import get_python_lib
 from .. import common, consts, compat
-from .base import MakiMixin, ValidateRepositoryMixin, BaseHandler, HandlerError
-from . import config as config_handlers
+from .base import MakiMixin, ValidateRepositoryMixin, BaseHandler, HandlerError, \
+    PropertiesFile
+from . import setup as config_handlers
 from string import Template
 import netifaces
 import abc
@@ -32,15 +32,14 @@ __version__ = '0.2.0-incubating'
 
 class BaseRunPipelineHandler(BaseHandler, MakiMixin):
 
-    platform = None
+    cluster_manager = None
 
     def __init__(self, **args):
         super(BaseRunPipelineHandler, self).__init__(**args)
+        self.props = PropertiesFile('~/.amaterasu/amaterasu.properties')
         self.base_dir = '/tmp/amaterasu/repos'
         self.dir_path = '{}/{}'.format(self.base_dir, uuid.uuid4())
-        self.amaterasu_root = os.path.abspath(
-            '{}/amaterasu/process/apache-amaterasu-{}'.format(get_python_lib(),
-                                                              __version__))
+        self.amaterasu_root = self.props['amaterasu.home']
 
     def _validate_repository(self):
         super(BaseRunPipelineHandler, self)._validate_repository()
@@ -72,7 +71,7 @@ class RunMesosPipelineHandler(BaseRunPipelineHandler, MakiMixin,  ValidateReposi
     If all validations are passed, we invoke the Scala runtime.
     """
 
-    platform = 'mesos'
+    cluster_manager = 'mesos'
 
     def _get_command_params(self):
         command_params = [
@@ -80,17 +79,19 @@ class RunMesosPipelineHandler(BaseRunPipelineHandler, MakiMixin,  ValidateReposi
             '-cp',
             '{}/bin/leader-{}-all.jar'.format(self.amaterasu_root, __version__),
             "-Djava.library.path=/usr/lib",
-            "org.apache.amaterasu.leader.mesos.JobLauncher",
+            "org.apache.amaterasu.leader.mesos.MesosJobLauncher",
             "--home",
             self.amaterasu_root,
             "--repo",
-            self.args['repository_url'][0],
+            self.args['repository_url'],
             "--env",
             self.args.get('env', 'default'),
             "--report",
-            self.args.get('report', None),
+            self.args.get('report', 'code'),
             "--branch",
-            self.args.get('branch', 'master')
+            self.args.get('branch', 'master'),
+            "--config-home",
+            os.path.expanduser("~/.amaterasu")
         ]
         if self.args.get('job_id'):
             command_params.extend(["--job-id", self.args['job_id']])
@@ -98,22 +99,10 @@ class RunMesosPipelineHandler(BaseRunPipelineHandler, MakiMixin,  ValidateReposi
             command_params.extend(["--name", self.args['name']])
         return command_params
 
-    def _generate_amaterasu_properties(self):
-        ama_template = Template(common.RESOURCES[consts.AMATERASU_PROPERTIES])
-        default_gateway = netifaces.gateways()['default']
-        if default_gateway:
-            netface_name = default_gateway[netifaces.AF_INET][1]
-            ip = netifaces.ifaddresses(netface_name)[netifaces.AF_INET][0]['addr']
-        else:
-            ip = '127.0.0.1'
-        rendered = ama_template.substitute(zk=ip, master=ip)
-        with open('{}/amaterasu.properties'.format(self.amaterasu_root), 'w') as f:
-            f.write(rendered)
-
 
 class RunYarnPipelineHandler(BaseRunPipelineHandler):
 
-    platform = 'yarn'
+    cluster_manager = 'yarn'
 
     def _get_command_params(self):
         """
@@ -146,31 +135,30 @@ class RunYarnPipelineHandler(BaseRunPipelineHandler):
 
 
 def _check_amaterasu_properties():
-    supported_platforms = ['mesos', 'yarn']
+    supported_cluster_managers = ['mesos', 'yarn']
     if not os.path.exists(
         os.path.expanduser('~/.amaterasu/amaterasu.properties')):
         print('Amaterasu hasn\'t been configured yet, please fill in the following details:')
-        platform = None
-        while not platform:
-            platform = input('Choose execution platform [{}]:'.format(', '.join(supported_platforms)))
-            if platform.strip() not in supported_platforms:
-                print('Invalid platform: {}'.format(platform))
-                platform = None
-        kwargs = {platform: True}
+        cluster_manager = None
+        while not cluster_manager:
+            cluster_manager = input('Choose cluster manager [{}]:'.format(', '.join(supported_cluster_managers)))
+            if cluster_manager.strip() not in supported_cluster_managers:
+                print('Invalid cluster manager: {}'.format(cluster_manager))
+                cluster_manager = None
+        kwargs = {cluster_manager: True}
         handler = config_handlers.get_handler(**kwargs)
         handler()
 
 
 def get_handler(**kwargs):
-    with open(os.path.expanduser('~/.amaterasu/amaterasu.properties')) as f:
-        for line in f.read().splitlines():
-            var, value = line.split('=')
-            if var == 'platform':
-                if value == 'mesos':
-                    return RunMesosPipelineHandler
-                elif value == 'yarn':
-                    return RunYarnPipelineHandler
-                else:
-                    raise NotImplemented('Unsupported platform: {}'.format(value))
+    try:
+        props = PropertiesFile('~/.amaterasu/amaterasu.properties')
+        cluster_manager = props['cluster.manager']
+        if cluster_manager == 'mesos':
+            return RunMesosPipelineHandler
+        elif cluster_manager == 'yarn':
+            return RunYarnPipelineHandler
         else:
-            raise HandlerError('platform is missing from configuring! Please run ama config and try again.')
+            raise NotImplemented('Unsupported cluster manager: {}'.format(cluster_manager))
+    except KeyError:
+        raise HandlerError('cluster.manager is missing from configuration! Please run ama setup and try again.')

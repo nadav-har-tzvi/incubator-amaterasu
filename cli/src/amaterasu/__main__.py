@@ -5,7 +5,7 @@ Usage: ama <command> [<args>...]
 
 Builtin commands:
     init        Start a new Amaterasu compliant repository
-    config      Configure Amaterasu settings
+    setup       Setup Amaterasu, this configures Amaterasu settings and download dependencies
     update      Update an existing Amaterasu repository based on a maki file
     run         Run an Amaterasu pipeline
 
@@ -53,12 +53,16 @@ def extract_args(args):
     :type args: dict
     :return:
     """
-    return {
-        k.strip('<').strip('>'): v
-        for k, v
-        in args.items()
-        if k.startswith('<')
-    }
+    kwargs = {}
+    for k,v in args.items():
+        if k.startswith('--'):
+            key = k.lstrip('--')
+        elif k.startswith('<') and k.endswith('>'):
+            key = k.strip('<').strip('>')
+        else:
+            key = k
+        kwargs[key] = v
+    return kwargs
 
 
 def find_handler(handler_module, **kwargs):

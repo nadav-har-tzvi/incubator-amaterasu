@@ -2,17 +2,22 @@
 Create or change Amaterasu's configuration.
 
 Usage:
-    ama config ( mesos | yarn )
+    ama setup ( mesos | yarn )
 
 """
 import netifaces
 from string import Template
+from typing import Any
 
-from .base import BaseHandler
+from ..utils.input import default_input
+from .base import BaseHandler, PropertiesFile
 import os
 import abc
 import socket
 import getpass
+import wget
+import colorama
+import shutil
 
 
 def get_current_ip():
@@ -37,10 +42,15 @@ class ConfigurationField(metaclass=abc.ABCMeta):
         self.input_text = input_text
         self._default = default
         self.name = name
+        self._handler = None
 
     def clean(self, value):
         if not value and value != 0 and self._default is not None:
-            return self.default
+            try:
+                default_func = getattr(self._handler, str(self.default))
+                return default_func()
+            except AttributeError:
+                return self.default
         if self.required and value is None:
             raise ValidationError('This field is required')
         return value
@@ -93,6 +103,22 @@ class IPField(TextField):
             raise ValidationError('Value must be a valid IP address')
 
 
+class PathField(TextField):
+
+    def clean(self, value):
+        cleaned_value = super().clean(value)
+        if not os.path.isabs(cleaned_value):
+            cleaned_value = os.path.expanduser(cleaned_value) if cleaned_value.startswith('~') else os.path.abspath(cleaned_value)
+        if os.path.exists(cleaned_value):
+            return cleaned_value
+        else:
+            if value == cleaned_value:
+                raise ValidationError('Path "{}" does not exist'.format(cleaned_value))
+            else:
+                raise ValidationError(
+                    'Path "{}" does not exist'.format(value))
+
+
 class ConfigurationMeta(abc.ABCMeta):
 
     @staticmethod
@@ -117,12 +143,34 @@ class ConfigurationMeta(abc.ABCMeta):
 
 class BaseConfigurationHandler(BaseHandler, metaclass=ConfigurationMeta):
 
-    platform = None
+    cluster_manager = None
+    amaterasu_home = PathField(input_text='Amaterasu home directory', default='/ama', name='amaterasu.home')
     zk = IPField(required=True, input_text='Zookeeper IP', default=get_current_ip)
     master = IPField(required=True, input_text='Mesos master IP', default=get_current_ip)
     user = TextField(required=True, default=getpass.getuser())
-    spark_version = TextField(default='2.1.1-bin-hadoop2.7',
+    spark_version = TextField(default='2.2.1-bin-hadoop2.7',
                               input_text='Spark version', name='spark.version')
+    spark_home = TextField(default='spark_home_default', input_text='Path to spark\'s distributable', name='spark.home')
+
+    @property
+    @abc.abstractmethod
+    def spark_home_default(self):
+        pass
+
+    def __new__(cls, *args, **kwargs) -> Any:
+        instance = super().__new__(cls)
+        for field in instance._fields.values():
+            field._handler = instance
+        return instance
+
+    def __init__(self, **args):
+        if os.path.exists(os.path.expanduser('~/.amaterasu/amaterasu.properties')):
+            prop_file = PropertiesFile('~/.amaterasu/amaterasu.properties')
+            for var_name, field in self._fields.items():
+                field_name = field.name if field.name else var_name
+                setattr(self, var_name, prop_file.get(field_name))
+
+        super().__init__(**args)
 
     def _get_user_input_for_field(self, var_name: str, field: ConfigurationField):
         input_tpl = Template('$input_text $default:')
@@ -133,16 +181,25 @@ class BaseConfigurationHandler(BaseHandler, metaclass=ConfigurationMeta):
             else:
                 input_string = Template(input_tpl.safe_substitute(input_text=var_name))
             if field.default:
+                try:
+                    default_func = getattr(self, str(field.default))
+                    default_val = default_func()
+                except AttributeError:
+                    default_val = field.default
                 input_string = input_string.safe_substitute(
-                    default='[{}]'.format(field.default))
+                    default='[{}]'.format(default_val))
             else:
                 input_string = input_string.safe_substitute(default='')
-            value = input(input_string)
+            if getattr(self, var_name):
+                value = default_input(input_string, getattr(self, var_name))
+            else:
+                value = input(input_string)
             try:
-                field.clean(value)
+                cleaned_value = field.clean(value)
                 valid = True
             except ValidationError as e:
                 print('{}. Please try again'.format(e))
+        return cleaned_value
 
     def _collect_user_input(self):
         for var_name, field in self._fields.items():
@@ -152,21 +209,47 @@ class BaseConfigurationHandler(BaseHandler, metaclass=ConfigurationMeta):
     def _render_properties_file(self):
         field_tpl = '{var}={value}\n'
         os.makedirs(os.path.expanduser('~/.amaterasu'), exist_ok=True)
-        with open(os.path.expanduser('~/.amaterasu/amaterasu.properties'), 'w') as f:
-            f.write(field_tpl.format(var='platform', value=self.platform))
-            for var_name in self._fields.keys():
-                f.write(field_tpl.format(var=var_name, value=getattr(self, var_name)))
+        props_home_path = os.path.expanduser('~/.amaterasu/amaterasu.properties')
+        props_dist_path = os.path.join(self.amaterasu_home, 'dist', 'amaterasu.properties')
+        with open(props_home_path, 'w') as f:
+            f.write(field_tpl.format(var='cluster.manager', value=self.cluster_manager))
+            for var_name, field_cls in self._fields.items():
+                field_name = field_cls.name if field_cls.name else var_name
+                f.write(field_tpl.format(var=field_name, value=getattr(self, var_name)))
+        shutil.copy(props_home_path, props_dist_path)
+
+    def _install_dependencies(self):
+        spark_dist_path = os.path.join(self.amaterasu_home, 'dist', 'spark-{}.tgz'.format(self.spark_version))
+        miniconda_dist_path = os.path.join(self.amaterasu_home, 'dist', 'Miniconda2-latest-Linux-x86_64.sh')
+        if not os.path.exists(spark_dist_path):
+            print(colorama.Style.BRIGHT, 'Fetching Spark distributable', colorama.Style.RESET_ALL)
+            spark_url = 'http://apache.mirror.digitalpacific.com.au/spark/spark-{}/spark-{}.tgz'.format(self.spark_version.split('-')[0], self.spark_version)
+            wget.download(
+                spark_url,
+                out=spark_dist_path
+            )
+        if not os.path.exists(miniconda_dist_path):
+            print('\n', colorama.Style.BRIGHT, 'Fetching Miniconda distributable', colorama.Style.RESET_ALL)
+            wget.download(
+                'https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh',
+                out=miniconda_dist_path
+            )
+
 
     def handle(self):
         self._collect_user_input()
         self._render_properties_file()
+        self._install_dependencies()
 
 
 class MesosConfigurationHandler(BaseConfigurationHandler):
 
     amaterasu_port = NumericField(default=8000, input_text='Amaterasu server port', name='webserver.port')
-    amaterasu_root = TextField(default='dist', input_text='Amaterasu server root path', name='amaterasu.root')
-    platform = 'mesos'
+    amaterasu_root = TextField(default='dist', input_text='Amaterasu server root path', name='webserver.root')
+    cluster_manager = 'mesos'
+
+    def spark_home_default(self):
+        return './spark-{}'.format(self.spark_version)
 
 
 class YarnConfigurationHandler(BaseConfigurationHandler):
@@ -177,7 +260,10 @@ class YarnConfigurationHandler(BaseConfigurationHandler):
     yarn_homedir = TextField(default='/etc/hadoop', name='yarn.hadoop.home.dir')
     spark_yarn_java_opts = TextField(default='-Dhdp.version=2.6.1.0-129', name='spark.opts.spark.yarn.am.extraJavaOptions')
     spark_driver_java_opts = TextField(default='-Dhdp.version=2.6.1.0-129', name='spark.opts.spark.driver.extraJavaOptions')
-    platform = 'yarn'
+    cluster_manager = 'yarn'
+
+    def spark_home_default(self):
+        return '/usr/hdp/current/spark2-client'
 
 
 def get_handler(**kwargs):
