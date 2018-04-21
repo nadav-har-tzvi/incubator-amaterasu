@@ -215,7 +215,10 @@ class BaseConfigurationHandler(BaseHandler, metaclass=ConfigurationMeta):
             f.write(field_tpl.format(var='cluster.manager', value=self.cluster_manager))
             for var_name, field_cls in self._fields.items():
                 field_name = field_cls.name if field_cls.name else var_name
-                f.write(field_tpl.format(var=field_name, value=getattr(self, var_name)))
+                value = str(getattr(self, var_name)).strip('"')
+                if '=' in value:
+                    value = '"{}"'.format(value)
+                f.write(field_tpl.format(var=field_name, value=value))
         shutil.copy(props_home_path, props_dist_path)
 
     def _install_dependencies(self):

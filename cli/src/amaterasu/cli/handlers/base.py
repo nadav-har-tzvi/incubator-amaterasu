@@ -193,7 +193,12 @@ class PropertiesFile(dict):
         with open(abs_path, 'r') as f:
             for i, line in enumerate(f.read().splitlines()):
                 try:
-                    var, value = line.split('=')
+                    parts = line.split('=')
+                    if len(parts) > 2:
+                        var = parts[0]
+                        value = '='.join(parts[1:])
+                    else:
+                        var, value = parts
                     self[var.strip()] = value.strip()
                 except ValueError:
                     print('Improperly Configured: bad form of line {} in amaterasu.properties'.format(i))
