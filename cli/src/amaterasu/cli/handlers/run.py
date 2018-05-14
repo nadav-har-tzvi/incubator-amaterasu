@@ -137,14 +137,7 @@ class RunYarnPipelineHandler(BaseRunPipelineHandler, MakiMixin,  ValidateReposit
 
     def handle(self):
         if self.args.get('force-bin', False):
-
             compat.run_subprocess(['hdfs', 'dfs', '-rm', '-R', '-skipTrash', self.props['yarn.jarspath']])
-            compat.run_subprocess(['hdfs', 'dfs', '-mkdir', self.props['yarn.jarspath']])
-            compat.run_subprocess(['hdfs', 'dfs', '-chmod', '-R', '777', self.props['yarn.jarspath']])
-            copy_amaterasu_cmd = 'hdfs dfs -copyFromLocal {}/* {}'.format(self.amaterasu_root, self.props['yarn.jarspath'])
-            compat.run_subprocess(copy_amaterasu_cmd, shell=True)
-            copy_amaterasu_props_cmd = 'hdfs dfs -copyFromLocal {} {}'.format(self.props.path, self.props['yarn.jarspath'])
-            compat.run_subprocess(copy_amaterasu_props_cmd, shell=True)
         return super().handle()
 
 
