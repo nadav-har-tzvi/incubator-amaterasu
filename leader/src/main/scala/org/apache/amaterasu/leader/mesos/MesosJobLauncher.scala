@@ -36,6 +36,7 @@ object MesosJobLauncher extends BaseJobLauncher {
       .setName(s"${arguments.name} - Amaterasu Job")
       .setFailoverTimeout(config.timeout)
       .setUser(config.user)
+      .setRole(config.mesosRole)
 
     // TODO: test this
     if (resume) {

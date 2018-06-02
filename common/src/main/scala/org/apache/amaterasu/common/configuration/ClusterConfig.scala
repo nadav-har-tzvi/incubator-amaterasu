@@ -35,6 +35,7 @@ class ClusterConfig extends Logging {
   var mode: String = ""
   var master: String = "127.0.0.1"
   var masterPort: String = "5050"
+  var mesosRole: String = "*"
   var timeout: Double = 600000
   var taskMem: Int = 1024
   var distLocation: String = "local"
@@ -210,6 +211,7 @@ class ClusterConfig extends Logging {
     if (props.containsKey("mode")) mode = props.getProperty("mode")
     if (props.containsKey("workingFolder")) workingFolder = props.getProperty("workingFolder", s"/user/$user")
     if (props.containsKey("pysparkPath")) pysparkPath = props.getProperty("pysparkPath")
+    if (props.containsKey("mesosRole")) mesosRole = props.getProperty("mesosRole")
     // TODO: rethink this
     Jar = this.getClass.getProtectionDomain.getCodeSource.getLocation.toURI.getPath
     JarName = Paths.get(this.getClass.getProtectionDomain.getCodeSource.getLocation.getPath).getFileName.toString
