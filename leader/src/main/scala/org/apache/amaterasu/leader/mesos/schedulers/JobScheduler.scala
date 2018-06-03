@@ -131,7 +131,7 @@ class JobScheduler extends AmaterasuScheduler {
 
   def resourceOffers(driver: SchedulerDriver, offers: util.List[Offer]): Unit = {
     for (offer <- offers.asScala) {
-
+      println(s"offer: $offer")
       if (validateOffer(offer)) {
 
         log.info(s"Accepting offer, id=${offer.getId}")
@@ -166,11 +166,11 @@ class JobScheduler extends AmaterasuScheduler {
               }
               else {
                 val execData = DataLoader.getExecutorDataBytes(env, config)
-
+                val mesosNativeLibraryPath = sys.env.get("MESOS_NATIVE_LIBRARY")
                 val command = CommandInfo
                   .newBuilder
                   .setValue(
-                    s"""$awsEnv env AMA_NODE=${sys.env("AMA_NODE")} env MESOS_NATIVE_JAVA_LIBRARY=/usr/lib/libmesos.so env SPARK_EXECUTOR_URI=http://${sys.env("AMA_NODE")}:${config.Webserver.Port}/dist/spark-${config.Webserver.sparkVersion}.tgz java -cp executor-${config.version}-all.jar:spark-${config.Webserver.sparkVersion}/jars/* -Dscala.usejavacp=true -Djava.library.path=/usr/lib org.apache.amaterasu.executor.mesos.executors.MesosActionsExecutor ${jobManager.jobId} ${config.master} ${actionData.name}""".stripMargin
+                    s"""$awsEnv env AMA_NODE=${sys.env("AMA_NODE")} env MESOS_NATIVE_LIBRARY=$mesosNativeLibraryPath env MESOS_NATIVE_JAVA_LIBRARY=/usr/lib/libmesos.so env SPARK_EXECUTOR_URI=http://${sys.env("AMA_NODE")}:${config.Webserver.Port}/dist/spark-${config.Webserver.sparkVersion}.tgz java -cp executor-${config.version}-all.jar:spark-${config.Webserver.sparkVersion}/jars/* -Dscala.usejavacp=true -Djava.library.path=/usr/lib org.apache.amaterasu.executor.mesos.executors.MesosActionsExecutor ${jobManager.jobId} ${config.master} ${actionData.name}""".stripMargin
                   )
                   //                  HttpServer.getFilesInDirectory(sys.env("AMA_NODE"), config.Webserver.Port).foreach(f=>
                   //                  )
