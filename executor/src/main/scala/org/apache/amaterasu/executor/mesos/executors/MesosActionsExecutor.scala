@@ -71,7 +71,9 @@ class MesosActionsExecutor extends Executor with Logging {
 
   }
 
-  override def frameworkMessage(driver: ExecutorDriver, data: Array[Byte]) = ???
+  override def frameworkMessage(driver: ExecutorDriver, data: Array[Byte]) = {
+    notifier.info(data.toString)
+  }
 
   override def registered(driver: ExecutorDriver, executorInfo: ExecutorInfo, frameworkInfo: FrameworkInfo, slaveInfo: SlaveInfo): Unit = {
 

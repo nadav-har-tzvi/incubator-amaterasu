@@ -112,8 +112,8 @@ class SparkRunnersProvider extends RunnersProvider with Logging {
     // TODO: get rid of hard-coded version
 
     this.clusterConfig.mode match {
-      case "yarn" => Seq("sh", "-c", "export HOME=$PWD && ./miniconda.sh -b -p miniconda") ! shellLoger
-      case "mesos" => Seq("sh", "Miniconda2-latest-Linux-x86_64.sh", "-b", "-p", "miniconda") ! shellLoger
+      case "yarn" => Seq("bash", "-c", "export HOME=$PWD && ./miniconda.sh -b -p miniconda") ! shellLoger
+      case "mesos" => Seq("bash", "Miniconda2-latest-Linux-x86_64.sh", "-b", "-p", "miniconda") ! shellLoger
     }
 
     Seq("bash", "-c", "export HOME=$PWD && ./miniconda/bin/python -m conda install -y conda-build") ! shellLoger

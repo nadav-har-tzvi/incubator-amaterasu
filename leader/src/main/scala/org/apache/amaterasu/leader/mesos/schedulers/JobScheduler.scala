@@ -65,7 +65,7 @@ class JobScheduler extends AmaterasuScheduler {
   private var reportLevel: NotificationLevel = _
 
   val slavesExecutors = new TrieMap[String, ExecutorInfo]
-  private var awsEnv: String = ""
+  private var awsEnv: Environment = _
 
   // this map holds the following structure:
   // slaveId
@@ -166,11 +166,19 @@ class JobScheduler extends AmaterasuScheduler {
               }
               else {
                 val execData = DataLoader.getExecutorDataBytes(env, config)
-                val mesosNativeLibraryPath = sys.env.get("MESOS_NATIVE_LIBRARY")
-                val command = CommandInfo
-                  .newBuilder
+                
+                val mesosEnv = Environment.newBuilder
+                  .addVariables(Environment.Variable.newBuilder.setName("AMA_NODE").setValue(sys.env("AMA_NODE")))
+                  .addVariables(Environment.Variable.newBuilder.setName("MESOS_NATIVE_LIBRARY").setValue(sys.env("MESOS_NATIVE_LIBRARY")))
+                  .addVariables(Environment.Variable.newBuilder.setName("MESOS_NATIVE_JAVA_LIBRARY").setValue(sys.env("MESOS_NATIVE_LIBRARY")))
+                  .addVariables(Environment.Variable.newBuilder.setName("SPARK_EXECUTOR_URI").setValue(sys.env(s"http://${sys.env("AMA_NODE")}:${config.Webserver.Port}/dist/spark-${config.Webserver.sparkVersion}.tgz")))
+                  .mergeFrom(awsEnv)
+                  .build()
+
+                val command = CommandInfo.newBuilder
+                  .setEnvironment(mesosEnv)
                   .setValue(
-                    s"""$awsEnv env AMA_NODE=${sys.env("AMA_NODE")} env MESOS_NATIVE_LIBRARY=$mesosNativeLibraryPath env MESOS_NATIVE_JAVA_LIBRARY=/usr/lib/libmesos.so env SPARK_EXECUTOR_URI=http://${sys.env("AMA_NODE")}:${config.Webserver.Port}/dist/spark-${config.Webserver.sparkVersion}.tgz java -cp executor-${config.version}-all.jar:spark-${config.Webserver.sparkVersion}/jars/* -Dscala.usejavacp=true -Djava.library.path=/usr/lib org.apache.amaterasu.executor.mesos.executors.MesosActionsExecutor ${jobManager.jobId} ${config.master} ${actionData.name}""".stripMargin
+                    s"""java -cp executor-${config.version}-all.jar:spark-${config.Webserver.sparkVersion}/jars/* -Dscala.usejavacp=true -Djava.library.path=/usr/lib org.apache.amaterasu.executor.mesos.executors.MesosActionsExecutor ${jobManager.jobId} ${config.master} ${actionData.name}""".stripMargin
                   )
                   //                  HttpServer.getFilesInDirectory(sys.env("AMA_NODE"), config.Webserver.Port).foreach(f=>
                   //                  )
@@ -334,7 +342,12 @@ object JobScheduler {
     if (!sys.env("AWS_ACCESS_KEY_ID").isEmpty &&
       !sys.env("AWS_SECRET_ACCESS_KEY").isEmpty) {
 
-      scheduler.awsEnv = s"env AWS_ACCESS_KEY_ID=${sys.env("AWS_ACCESS_KEY_ID")} env AWS_SECRET_ACCESS_KEY=${sys.env("AWS_SECRET_ACCESS_KEY")}"
+      scheduler.awsEnv = Environment.newBuilder
+        .addVariables(Environment.Variable.newBuilder.setName("AWS_ACCESS_KEY_ID").setValue(sys.env("AWS_ACCESS_KEY_ID")))
+        .addVariables(Environment.Variable.newBuilder.setName("AWS_SECRET_ACCESS_KEY").setValue(sys.env("AWS_SECRET_ACCESS_KEY")))
+        .build()
+    } else {
+      scheduler.awsEnv = Environment.newBuilder.build()
     }
 
     scheduler.resume = resume
