@@ -166,12 +166,12 @@ class JobScheduler extends AmaterasuScheduler {
               }
               else {
                 val execData = DataLoader.getExecutorDataBytes(env, config)
-                
+
                 val mesosEnv = Environment.newBuilder
                   .addVariables(Environment.Variable.newBuilder.setName("AMA_NODE").setValue(sys.env("AMA_NODE")))
                   .addVariables(Environment.Variable.newBuilder.setName("MESOS_NATIVE_LIBRARY").setValue(sys.env("MESOS_NATIVE_LIBRARY")))
                   .addVariables(Environment.Variable.newBuilder.setName("MESOS_NATIVE_JAVA_LIBRARY").setValue(sys.env("MESOS_NATIVE_LIBRARY")))
-                  .addVariables(Environment.Variable.newBuilder.setName("SPARK_EXECUTOR_URI").setValue(sys.env(s"http://${sys.env("AMA_NODE")}:${config.Webserver.Port}/dist/spark-${config.Webserver.sparkVersion}.tgz")))
+                  .addVariables(Environment.Variable.newBuilder.setName("SPARK_EXECUTOR_URI").setValue(s"http://${sys.env("AMA_NODE")}:${config.Webserver.Port}/dist/spark-${config.Webserver.sparkVersion}.tgz"))
                   .mergeFrom(awsEnv)
                   .build()
 
