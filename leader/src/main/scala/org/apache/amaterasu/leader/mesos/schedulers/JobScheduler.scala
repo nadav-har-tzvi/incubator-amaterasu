@@ -169,16 +169,15 @@ class JobScheduler extends AmaterasuScheduler {
 
                 val mesosEnv = Environment.newBuilder
                   .addVariables(Environment.Variable.newBuilder.setName("AMA_NODE").setValue(sys.env("AMA_NODE")))
-                  .addVariables(Environment.Variable.newBuilder.setName("MESOS_NATIVE_LIBRARY").setValue(sys.env("MESOS_NATIVE_LIBRARY")))
-                  .addVariables(Environment.Variable.newBuilder.setName("MESOS_NATIVE_JAVA_LIBRARY").setValue(sys.env("MESOS_NATIVE_LIBRARY")))
+                  .addVariables(Environment.Variable.newBuilder.setName("MESOS_NATIVE_JAVA_LIBRARY").setValue(sys.env("MESOS_NATIVE_JAVA_LIBRARY")))
                   .addVariables(Environment.Variable.newBuilder.setName("SPARK_EXECUTOR_URI").setValue(s"http://${sys.env("AMA_NODE")}:${config.Webserver.Port}/dist/spark-${config.Webserver.sparkVersion}.tgz"))
                   .mergeFrom(awsEnv)
                   .build()
-
+                val libMesosDir = new File(sys.env("MESOS_NATIVE_JAVA_LIBRARY")).getParent
                 val command = CommandInfo.newBuilder
                   .setEnvironment(mesosEnv)
                   .setValue(
-                    s"""java -cp executor-${config.version}-all.jar:spark-${config.Webserver.sparkVersion}/jars/* -Dscala.usejavacp=true -Djava.library.path=/usr/lib org.apache.amaterasu.executor.mesos.executors.MesosActionsExecutor ${jobManager.jobId} ${config.master} ${actionData.name}""".stripMargin
+                    s"""java -cp executor-${config.version}-all.jar:spark-${config.Webserver.sparkVersion}/jars/* -Dscala.usejavacp=true -Djava.library.path=$libMesosDir org.apache.amaterasu.executor.mesos.executors.MesosActionsExecutor ${jobManager.jobId} ${config.master} ${actionData.name}""".stripMargin
                   )
                   //                  HttpServer.getFilesInDirectory(sys.env("AMA_NODE"), config.Webserver.Port).foreach(f=>
                   //                  )

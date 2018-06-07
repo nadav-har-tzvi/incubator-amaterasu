@@ -20,13 +20,14 @@ import java.io.File
 
 import org.apache.amaterasu.common.configuration.ClusterConfig
 import org.apache.amaterasu.common.dataobjects.ExecData
+import org.apache.amaterasu.common.logging.Logging
 import org.apache.amaterasu.leader.utilities.{DataLoader, MemoryFormatParser}
 import org.apache.amaterasu.sdk.frameworks.FrameworkSetupProvider
 import org.apache.amaterasu.sdk.frameworks.configuration.DriverConfiguration
 
 import scala.collection.mutable
 
-class SparkSetupProvider extends FrameworkSetupProvider {
+class SparkSetupProvider extends FrameworkSetupProvider with Logging {
 
 
   private var env: String = _

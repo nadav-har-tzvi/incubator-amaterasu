@@ -138,6 +138,7 @@ class MesosActionsExecutor extends Executor with Logging {
 object MesosActionsExecutor extends Logging {
 
   def main(args: Array[String]) {
+
     System.loadLibrary("mesos")
     log.debug("Starting a new ActionExecutor")
 

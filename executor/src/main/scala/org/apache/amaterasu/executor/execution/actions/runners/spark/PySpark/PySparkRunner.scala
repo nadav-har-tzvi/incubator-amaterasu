@@ -101,7 +101,7 @@ object PySparkRunner {
     PySparkEntryPoint.start(spark, jobId, env, SparkEnv.get)
     val port = PySparkEntryPoint.getPort
     var intpPath = ""
-    if (env.configuration.contains("cwd")) {
+    if (Option(env.configuration).isDefined && env.configuration.contains("cwd")) {
       val cwd = new File(env.configuration("cwd"))
       intpPath = s"${cwd.getAbsolutePath}/spark_intp.py" // This is to support test environment
     } else {
