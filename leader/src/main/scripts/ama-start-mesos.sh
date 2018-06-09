@@ -17,8 +17,10 @@
 #
 
 BASEDIR=$(dirname "$0")
+MESOS_LIB_PATH=${MESOS_LIB_PATH:-/usr/lib}
 
 export AMA_NODE="$(hostname)"
+export MESOS_NATIVE_JAVA_LIBRARY=$MESOS_LIB_PATH/libmesos.so
 #pushd $BASEDIR >/dev/null
 #cd /mesos-dependencies/ && nohup java -cp ${BASEDIR}/amaterasu-assembly-0.1.0.jar -Djava.library.path=/usr/lib org.apache.amaterasu.utilities.HttpServer &
 #SERVER_PID=$!
@@ -95,7 +97,7 @@ esac
 done
 
 echo "repo: ${REPO} "
-CMD="java -cp ${BASEDIR}/bin/*-all.jar -Djava.library.path=/usr/lib org.apache.amaterasu.leader.mesos.MesosJobLauncher --home ${BASEDIR}"
+CMD="java -cp ${BASEDIR}/bin/*-all.jar -Djava.library.path=$MESOS_LIB_PATH org.apache.amaterasu.leader.mesos.MesosJobLauncher --home ${BASEDIR}"
 
 if [ -n "$REPO" ]; then
     CMD+=" --repo ${REPO}"
