@@ -177,7 +177,7 @@ class JobScheduler extends AmaterasuScheduler {
                 val command = CommandInfo.newBuilder
                   .setEnvironment(mesosEnv)
                   .setValue(
-                    s"""java -cp executor-${config.version}-all.jar:spark-${config.Webserver.sparkVersion}/jars/* -Dscala.usejavacp=true -Djava.library.path=$libMesosDir org.apache.amaterasu.executor.mesos.executors.MesosActionsExecutor ${jobManager.jobId} ${config.master} ${actionData.name}""".stripMargin
+                    s"""${sys.env("JAVA_HOME")}/java -cp executor-${config.version}-all.jar:spark-${config.Webserver.sparkVersion}/jars/* -Dscala.usejavacp=true -Djava.library.path=$libMesosDir org.apache.amaterasu.executor.mesos.executors.MesosActionsExecutor ${jobManager.jobId} ${config.master} ${actionData.name}""".stripMargin
                   )
                   //                  HttpServer.getFilesInDirectory(sys.env("AMA_NODE"), config.Webserver.Port).foreach(f=>
                   //                  )
