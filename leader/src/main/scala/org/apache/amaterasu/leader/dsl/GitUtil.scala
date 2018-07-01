@@ -18,7 +18,9 @@ package org.apache.amaterasu.leader.dsl
 
 import java.io.File
 
-import org.eclipse.jgit.api.Git
+import com.jcraft.jsch.Session
+import org.eclipse.jgit.api.{Git, TransportConfigCallback}
+import org.eclipse.jgit.transport._
 
 import scala.reflect.io.Path
 
@@ -32,9 +34,19 @@ object GitUtil {
     val path = Path("repo")
     path.deleteRecursively()
 
+    val sshFactory = new JschConfigSessionFactory {
+      override def configure(hc: OpenSshConfig.Host, session: Session): Unit = ()
+    }
+
     //TODO: add authentication
     Git.cloneRepository
       .setURI(repoAddress)
+      .setTransportConfigCallback(new TransportConfigCallback {
+        override def configure(transport: Transport): Unit = {
+          val sshTransport = transport.asInstanceOf[SshTransport]
+          sshTransport.setSshSessionFactory(sshFactory)
+        }
+      })
       .setDirectory(new File("repo"))
       .setBranch(branch)
       .call

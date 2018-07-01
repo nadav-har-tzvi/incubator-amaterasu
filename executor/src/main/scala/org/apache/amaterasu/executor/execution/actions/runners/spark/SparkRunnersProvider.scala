@@ -123,7 +123,7 @@ class SparkRunnersProvider extends RunnersProvider with Logging {
   private def loadPythonDependencies(deps: PythonDependencies, notifier: Notifier): Unit = {
     notifier.info("loading anaconda evn")
     installAnacondaOnNode()
-    val codegenPackage = PythonPackage("codegen", channel = Option("auto"))
+    val codegenPackage = PythonPackage("astor", channel = Option("conda-forge"))
     installAnacondaPackage(codegenPackage)
     try {
       // notifier.info("loadPythonDependencies #5")

@@ -34,3 +34,14 @@ class Environment(object):
         self.output_root_path = output_root_path
         self.working_dir = working_dir
         self.configuration = configuration
+
+
+    @staticmethod
+    def _convert_java_map(jmap):
+        pymap = {}
+        for k in jmap:
+            try:
+                pymap[k] = Environment._convert_java_map(jmap[k]) # deal with maps
+            except:
+                pymap[k] = jmap[k]
+        return pymap

@@ -17,7 +17,7 @@
 #
 
 import ast
-import codegen
+import astor
 import os
 import sys
 import zipimport
@@ -78,6 +78,8 @@ spark = SparkSession(sc, entry_point.getSparkSession())
 
 ama_context = AmaContext(sc, spark, job_id, env)
 
+
+
 while True:
     actionData = queue.getNext()
     resultQueue = entry_point.getResultQueue(actionData._2())
@@ -91,7 +93,7 @@ while True:
         try:
             co = compile(wrapper, "<ast>", 'exec')
             exec (co)
-            resultQueue.put('success', actionData._2(), codegen.to_source(node), '')
+            resultQueue.put('success', actionData._2(), astor.to_source(node), '')
 
             #if this node is an assignment, we need to check if it needs to be persisted
             try:
@@ -106,5 +108,5 @@ while True:
             except:
                 resultQueue.put('error', actionData._2(), persistCode, str(sys.exc_info()[1]))
         except:
-            resultQueue.put('error', actionData._2(), codegen.to_source(node), str(sys.exc_info()[1]))
+            resultQueue.put('error', actionData._2(), astor.to_source(node), str(sys.exc_info()[1]))
     resultQueue.put('completion', '', '', '')
