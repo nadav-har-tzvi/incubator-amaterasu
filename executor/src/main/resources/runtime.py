@@ -25,6 +25,19 @@ class AmaContext(object):
     def get_dataframe(self, action_name, dataset_name, format = "parquet"):
         return self.spark.read.format(format).load(str(self.env.working_dir) + "/" + self.job_id + "/" + action_name + "/" + dataset_name)
 
+
+class _Configuration(object):
+
+    def __init__(self, config_map):
+        self.config = config_map
+
+    def __getattr__(self, item):
+        try:
+            self.config.get(item)
+        except:
+            super(_Configuration, self).__getattr__(item)
+
+
 class Environment(object):
 
     def __init__(self, name, master, input_root_path, output_root_path, working_dir, configuration):
@@ -33,15 +46,7 @@ class Environment(object):
         self.input_root_path = input_root_path
         self.output_root_path = output_root_path
         self.working_dir = working_dir
-        self.configuration = configuration
+        self.configuration = _Configuration(configuration)
 
 
-    @staticmethod
-    def _convert_java_map(jmap):
-        pymap = {}
-        for k in jmap:
-            try:
-                pymap[k] = Environment._convert_java_map(jmap[k]) # deal with maps
-            except:
-                pymap[k] = jmap[k]
-        return pymap
+
