@@ -33,9 +33,9 @@ class _Configuration(object):
 
     def __getattr__(self, item):
         try:
-            self.config.get(item)
+            return self.config.get(item).mkString()
         except:
-            super(_Configuration, self).__getattr__(item)
+            return super(_Configuration, self).__getattr__(item)
 
 
 class Environment(object):
