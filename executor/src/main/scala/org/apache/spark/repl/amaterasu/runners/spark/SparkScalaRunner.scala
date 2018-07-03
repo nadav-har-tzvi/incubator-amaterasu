@@ -67,17 +67,7 @@ class SparkScalaRunner(var env: Environment,
 
         outStream.reset()
         log.debug(line)
-        var src = line
-        blockLevel += line.count(x => x.equals('{'))
-        blockLevel -= line.count(x => x.equals('}'))
-        if (blockLevel > 0 && !blockEnterPressed) {
-          src += 13.toChar
-          blockEnterPressed = true
-        }
-        else if (blockLevel == 0 && blockEnterPressed) {
-          src += 13.toChar
-          blockEnterPressed = false
-        }
+        val src = line
         if (line.startsWith("import")) {
           interpreter.interpret(src)
           notifier.success(src)
