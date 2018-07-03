@@ -104,7 +104,9 @@ class MesosActionsExecutor extends Executor with Logging {
         .setTaskId(taskInfo.getTaskId)
         .setState(TaskState.TASK_RUNNING).build()
       driver.sendStatusUpdate(status)
+      notifier.info(s"Asking for runner: ${taskData.typeId}")
       val runner = providersFactory.getRunner(taskData.groupId, taskData.typeId)
+      notifier.info(s"Received runner: ${taskData.typeId}")
       runner match {
         case Some(r) => r.executeSource(taskData.src, actionName, taskData.exports.asJava)
         case None =>
