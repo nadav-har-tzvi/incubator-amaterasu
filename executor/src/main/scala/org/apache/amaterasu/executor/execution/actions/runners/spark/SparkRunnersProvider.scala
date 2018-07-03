@@ -48,15 +48,16 @@ class SparkRunnersProvider extends RunnersProvider with Logging {
   private var conf: Option[Map[String, Any]] = _
   private var executorEnv: Option[Map[String, Any]] = _
   private var clusterConfig: ClusterConfig = _
+  var notifier: Notifier = _
 
   override def init(execData: ExecData,
                     jobId: String,
                     outStream: ByteArrayOutputStream,
-                    notifier: Notifier,
+                    frameworkNotifier: Notifier,
                     executorId: String,
                     config: ClusterConfig,
                     hostName: String): Unit = {
-
+    notifier = frameworkNotifier
     shellLoger = ProcessLogger(
       (o: String) => log.info(o),
       (e: String) => log.error("", e)
@@ -152,7 +153,12 @@ class SparkRunnersProvider extends RunnersProvider with Logging {
 
   override def getGroupIdentifier: String = "spark"
 
-  override def getRunner(id: String): AmaterasuRunner = runners(id)
+  override def getRunner(id: String): AmaterasuRunner =  {
+    notifier.info(s"Getting runner: $id")
+    val runner = runners(id)
+    notifier.info(s"Got runner: $id")
+    runner
+  }
 
   private def getDependencies(deps: Dependencies): Seq[String] = {
 
