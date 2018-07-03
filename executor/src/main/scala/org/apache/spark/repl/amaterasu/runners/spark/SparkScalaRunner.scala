@@ -174,6 +174,8 @@ class SparkScalaRunner(var env: Environment,
 
 object SparkScalaRunner extends Logging {
 
+  val identifier: String = "scala"
+
   def apply(env: Environment,
             jobId: String,
             spark: SparkSession,

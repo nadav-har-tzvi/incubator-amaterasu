@@ -71,6 +71,8 @@ class PySparkRunner extends AmaterasuRunner with Logging {
 
 object PySparkRunner {
 
+  val identifier: String = "pyspark"
+
   def collectCondaPackages(): String = {
     val pkgsDirs = new File("./miniconda/pkgs")
     (pkgsDirs.listFiles.filter {

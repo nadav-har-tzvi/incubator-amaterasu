@@ -83,7 +83,7 @@ class SparkRunnersProvider extends RunnersProvider with Logging {
     lazy val sparkScalaRunner = SparkScalaRunner(execData.env, jobId, spark, outStream, notifier, jars)
     sparkScalaRunner.initializeAmaContext(execData.env)
 
-    runners.put(sparkScalaRunner.getIdentifier, sparkScalaRunner)
+    runners.put(SparkScalaRunner.identifier, sparkScalaRunner)
     var pypath = ""
     // TODO: get rid of hard-coded version
     config.mode match {
@@ -93,10 +93,10 @@ class SparkRunnersProvider extends RunnersProvider with Logging {
         pypath = s"${new File(".").getAbsolutePath}/miniconda/pkgs:${new File(".").getAbsolutePath}"
     }
     lazy val pySparkRunner = PySparkRunner(execData.env, jobId, notifier, spark, pypath, execData.pyDeps, config)
-    runners.put(pySparkRunner.getIdentifier, pySparkRunner)
+    runners.put(PySparkRunner.identifier, pySparkRunner)
 
     lazy val sparkSqlRunner = SparkSqlRunner(execData.env, jobId, notifier, spark)
-    runners.put(sparkSqlRunner.getIdentifier, sparkSqlRunner)
+    runners.put(SparkSqlRunner.identifier, sparkSqlRunner)
   }
 
   private def installAnacondaPackage(pythonPackage: PythonPackage): Unit = {

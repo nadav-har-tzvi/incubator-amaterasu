@@ -144,6 +144,8 @@ class SparkSqlRunner extends Logging with AmaterasuRunner {
 
 object SparkSqlRunner {
 
+  val identifier: String = "sql"
+
   def apply(env: Environment,
             jobId: String,
             // actionName: String,
