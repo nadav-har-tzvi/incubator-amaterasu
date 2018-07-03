@@ -58,7 +58,8 @@ class SparkScalaRunner(var env: Environment,
 
     notifier.info(s"================= started action $actionName =================")
     //notifier.info(s"exports is: $exports")
-
+    var blockLevel = 0
+    var blockEnterPressed = false
     for (line <- source.getLines()) {
 
       // ignoring empty or commented lines
@@ -66,13 +67,24 @@ class SparkScalaRunner(var env: Environment,
 
         outStream.reset()
         log.debug(line)
-
+        var src = line
+        blockLevel += line.count(x => x.equals('{'))
+        blockLevel -= line.count(x => x.equals('}'))
+        if (blockLevel > 0 && !blockEnterPressed) {
+          src += 13.toChar
+          blockEnterPressed = true
+        }
+        else if (blockLevel == 0 && blockEnterPressed) {
+          src += 13.toChar
+          blockEnterPressed = false
+        }
         if (line.startsWith("import")) {
-          interpreter.interpret(line)
+          interpreter.interpret(src)
+          notifier.success(src)
         }
         else {
 
-          val intresult = interpreter.interpret(line)
+          val intresult = interpreter.interpret(src)
 
           val result = interpreter.prevRequestList.last.lineRep.call("$result")
 
@@ -83,7 +95,7 @@ class SparkScalaRunner(var env: Environment,
             case Results.Success =>
               log.debug("Results.Success")
 
-              notifier.success(line)
+              notifier.success(src)
 
               val resultName = interpreter.prevRequestList.last.termNames.last
 
@@ -117,12 +129,12 @@ class SparkScalaRunner(var env: Environment,
             case Results.Error =>
               log.debug("Results.Error")
               val err = outStream.toString
-              notifier.error(line, err)
+              notifier.error(src, err)
               throw new Exception(err)
 
             case Results.Incomplete =>
               log.debug("Results.Incomplete")
-              notifier.success(line)
+              notifier.success(src)
           }
         }
       }
