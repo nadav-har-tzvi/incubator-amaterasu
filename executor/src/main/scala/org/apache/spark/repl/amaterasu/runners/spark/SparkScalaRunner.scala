@@ -122,7 +122,7 @@ class SparkScalaRunner(var env: Environment,
 
             case Results.Incomplete =>
               log.debug("Results.Incomplete")
-
+              notifier.success(line)
           }
         }
       }
