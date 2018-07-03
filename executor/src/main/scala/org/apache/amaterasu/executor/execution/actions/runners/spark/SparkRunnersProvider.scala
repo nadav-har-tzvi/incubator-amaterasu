@@ -167,7 +167,7 @@ class SparkRunnersProvider extends RunnersProvider with Logging {
 
     deps.artifacts.flatMap(a => {
       aether.resolve(
-        new DefaultArtifact(a.groupId, a.artifactId, "", "jar", a.version),
+        new DefaultArtifact(a.groupId, a.artifactId, a.classifier.getOrElse(""), "jar", a.version),
         JavaScopes.RUNTIME
       ).map(a => a)
     }).map(x => x.getFile.getAbsolutePath)
