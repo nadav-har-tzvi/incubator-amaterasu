@@ -27,7 +27,7 @@ class AmaContext(object):
 
     def get_dataframe(self, action_name, dataset_name, format = "parquet"):
         print(action_name, dataset_name)
-        return self.spark.read.format(format).load(os.path.join(self.env.working_dir, self.job_id, action_name, dataset_name))
+        return self.spark.read.format(format).load(self.env.working_dir + '/' + self.job_id + '/' + action_name + '/' + dataset_name)
 
 
 class _Configuration(object):
