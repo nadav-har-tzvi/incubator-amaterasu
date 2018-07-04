@@ -93,11 +93,11 @@ class SparkRunnersProvider extends RunnersProvider with Logging {
       case "mesos" =>
         pypath = s"${new File(".").getAbsolutePath}/miniconda/pkgs:${new File(".").getAbsolutePath}"
     }
-    notifier.info("Creating PySpark Runner")
+//    notifier.info("Creating PySpark Runner")
     lazy val pySparkRunner = PySparkRunner(execData.env, jobId, notifier, spark, pypath, execData.pyDeps, config)
-    notifier.info("PySpark Runner created")
+//    notifier.info("PySpark Runner created")
     runners.put(PySparkRunner.identifier, pySparkRunner)
-    notifier.info("PySpark Runner registered")
+//    notifier.info("PySpark Runner registered")
 
     lazy val sparkSqlRunner = SparkSqlRunner(execData.env, jobId, notifier, spark)
     runners.put(SparkSqlRunner.identifier, sparkSqlRunner)
@@ -154,9 +154,9 @@ class SparkRunnersProvider extends RunnersProvider with Logging {
   override def getGroupIdentifier: String = "spark"
 
   override def getRunner(id: String): AmaterasuRunner =  {
-    notifier.info(s"Getting runner: $id")
+//    notifier.info(s"Getting runner: $id")
     val runner = runners(id)
-    notifier.info(s"Got runner: $id")
+//    notifier.info(s"Got runner: $id")
     runner
   }
 

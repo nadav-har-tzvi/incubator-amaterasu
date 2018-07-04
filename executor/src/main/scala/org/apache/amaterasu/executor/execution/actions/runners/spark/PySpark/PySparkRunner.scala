@@ -95,7 +95,7 @@ object PySparkRunner {
       (e: String) => println(e)
     )
 
-    notifier.info("PySpark runner invoked!")
+//    notifier.info("PySpark runner invoked!")
     //TODO: can we make this less ugly?
 
 
