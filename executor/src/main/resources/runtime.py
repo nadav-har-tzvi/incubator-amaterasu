@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+
+
 class AmaContext(object):
 
     def __init__(self, sc, spark, job_id, env):
@@ -23,7 +26,8 @@ class AmaContext(object):
         self.env = env
 
     def get_dataframe(self, action_name, dataset_name, format = "parquet"):
-        return self.spark.read.format(format).load(str(self.env.working_dir) + "/" + self.job_id + "/" + action_name + "/" + dataset_name)
+        print(action_name, dataset_name)
+        return self.spark.read.format(format).load(os.path.join(self.env.working_dir, self.job_id, action_name, dataset_name))
 
 
 class _Configuration(object):
