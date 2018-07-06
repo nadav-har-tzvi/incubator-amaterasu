@@ -115,7 +115,7 @@ class JobScheduler extends AmaterasuScheduler {
   }
 
   def validateOffer(offer: Offer): Boolean = {
-    println(s"VALIDATE OFFER: miniconda exists: ${new File("dist/miniconda.sh").exists())}")
+    println(s"VALIDATE OFFER: miniconda exists: ${new File("dist/miniconda.sh").exists()}")
     val resources = offer.getResourcesList.asScala
 
     resources.count(r => r.getName == "cpus" && r.getScalar.getValue >= config.Jobs.Tasks.cpus) > 0 &&
@@ -130,7 +130,7 @@ class JobScheduler extends AmaterasuScheduler {
   }
 
   def resourceOffers(driver: SchedulerDriver, offers: util.List[Offer]): Unit = {
-    println(s"RESOURCE OFFERS: miniconda exists: ${new File("dist/miniconda.sh").exists())}")
+    println(s"RESOURCE OFFERS: miniconda exists: ${new File("dist/miniconda.sh").exists()}")
     for (offer <- offers.asScala) {
 
       if (validateOffer(offer)) {
