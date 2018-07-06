@@ -115,7 +115,7 @@ class JobScheduler extends AmaterasuScheduler {
   }
 
   def validateOffer(offer: Offer): Boolean = {
-    println(s"VALIDATE OFFER: miniconda exists: ${new File("dist/miniconda.sh").exists()}")
+    printNotification(new Notification("", s"VALIDATE OFFER: miniconda exists: ${new File("dist/miniconda.sh").exists()}", NotificationType.info, NotificationLevel.code))
     val resources = offer.getResourcesList.asScala
 
     resources.count(r => r.getName == "cpus" && r.getScalar.getValue >= config.Jobs.Tasks.cpus) > 0 &&
@@ -130,7 +130,7 @@ class JobScheduler extends AmaterasuScheduler {
   }
 
   def resourceOffers(driver: SchedulerDriver, offers: util.List[Offer]): Unit = {
-    println(s"RESOURCE OFFERS: miniconda exists: ${new File("dist/miniconda.sh").exists()}")
+    printNotification(new Notification("", s"RESOURCE OFFER: miniconda exists: ${new File("dist/miniconda.sh").exists()}", NotificationType.info, NotificationLevel.code))
     for (offer <- offers.asScala) {
 
       if (validateOffer(offer)) {
@@ -326,7 +326,7 @@ object JobScheduler {
             config: ClusterConfig,
             report: String,
             home: String): JobScheduler = {
-    println(s"APPLY START: miniconda exists: ${new File("dist/miniconda.sh").exists()}")
+    println(s"===> APPLY START: miniconda exists: ${new File("dist/miniconda.sh").exists()}")
     LogManager.resetConfiguration()
     val scheduler = new JobScheduler()
 
@@ -348,7 +348,7 @@ object JobScheduler {
     scheduler.client = CuratorFrameworkFactory.newClient(config.zk, retryPolicy)
     scheduler.client.start()
     scheduler.config = config
-    println(s"APPLY END: miniconda exists: ${new File("dist/miniconda.sh").exists()}")
+    println(s"===> APPLY END: miniconda exists: ${new File("dist/miniconda.sh").exists()}")
     scheduler
   }
 
