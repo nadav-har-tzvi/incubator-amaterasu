@@ -112,15 +112,7 @@ class Notifier(logging.Logger):
 
     def __init__(self, name, level=logging.NOTSET):
         super().__init__(name, level)
-        cluster_manager = env.cluster.manager
-        if cluster_manager == 'yarn':
-            handler = _LazyProxy(AmaActiveMQNotificationHandler)
-        elif cluster_manager is None:
-            raise ImproperlyConfiguredError(
-                "No cluster manager was specified by the leader")
-        else:
-            raise NotImplementedError(
-                "Unknown cluster manager: {}".format(cluster_manager))
+        handler = _LazyProxy(AmaActiveMQNotificationHandler)
         self.addHandler(handler)
 
 
@@ -133,5 +125,5 @@ def _create_environment():
 env = _create_environment()
 logging.setLoggerClass(Notifier)
 notifier = logging.getLogger(__name__)
-atexit.register(lambda: notifier.info('Action {} finished successfully'.format(env.job.id)))
+atexit.register(lambda: notifier.info('Action {} finished successfully'.format(env.name)))
 __all__ = ['BaseAmaContext', 'env', 'notifier']

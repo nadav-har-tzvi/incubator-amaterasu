@@ -11,7 +11,7 @@ class BaseSparkUnitTest(TestCase):
 
     job_name = 'test'
     spark: SparkSession = None
-    WORK_DIR = '/tmp/ama_test'
+    WORK_DIR = '/tmp/amaterasu'
 
     @staticmethod
     def get_spark_session(job_name) -> SparkSession:

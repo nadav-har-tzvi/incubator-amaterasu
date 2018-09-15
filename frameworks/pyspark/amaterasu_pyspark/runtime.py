@@ -8,17 +8,17 @@ class AmaContext(BaseAmaContext):
     def __init__(self):
         super(AmaContext, self).__init__()
         try:
-            master = env.cluster.master
+            master = env.master
         except AttributeError:
             raise ImproperlyConfiguredError("No SPARK_MASTER environment variable was defined!")
         else:
-            conf = SparkConf().setAppName(env.job.id).setMaster(master)
+            conf = SparkConf().setAppName(env.name).setMaster(master)
             self.sc = SparkContext.getOrCreate(conf)
             self.spark = SparkSession(self.sc)
 
     def get_dataset(self, action_name, dataset_name, format="parquet"):
         return self.spark.read.format(format).load(str(
-            env.workdir) + "/" + env.job.id + "/" + action_name + "/" + dataset_name)
+            env.workingDir) + "/" + env.name + "/" + action_name + "/" + dataset_name)
 
     def persist(self, action_name, dataset_name, dataset, format='parquet', overwrite=True):
         """
@@ -37,7 +37,7 @@ class AmaContext(BaseAmaContext):
         if overwrite:
             writer = writer.mode('overwrite')
         writer.save(
-            env.workdir + "/" + env.job.id + "/" + action_name + "/" + dataset_name)
+            env.workingDir + "/" + env.name + "/" + action_name + "/" + dataset_name)
 
 
 ama_context = AmaContext()
