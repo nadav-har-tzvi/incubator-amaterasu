@@ -13,7 +13,7 @@ setup(
     install_requires=['stomp.py'],
     entry_points={
         'console_scripts': [
-            'ama-runner=amaterasu.main:main'
+            'ama-runner=amaterasu.main:main '
         ]
     },
     classifiers=[

@@ -1,3 +1,3 @@
-from .runtime import BaseAmaContext, env, notifier, ImproperlyConfiguredError, _LazyProxy
+from .runtime import BaseAmaContext, conf, notifier, ImproperlyConfiguredError, _LazyProxy
 
-__all__ = ['BaseAmaContext', 'env', 'notifier', 'ImproperlyConfiguredError']
+__all__ = ['BaseAmaContext', 'conf', 'notifier', 'ImproperlyConfiguredError']

@@ -116,14 +116,24 @@ class Notifier(logging.Logger):
         self.addHandler(handler)
 
 
-def _create_environment():
+def _create_configuration():
+    _dict = {
+        'job_metadata': None,
+        'env': None,
+        'exports': None
+    }
     with open('env.yml', 'r') as f:
-        _dict = yaml.load(f.read())
+        _dict['env'] = yaml.load(f.read())
+    with open('datastores.yml', 'r') as f:
+        _dict['exports'] = yaml.load(f.read())
+    with open('runtime.yml', 'r') as f:
+        _dict['job_metadata'] = yaml.load(f.read())
+
     return munchify(_dict, factory=Environment)
 
 
-env = _create_environment()
+conf = _create_configuration()
 logging.setLoggerClass(Notifier)
 notifier = logging.getLogger(__name__)
-atexit.register(lambda: notifier.info('Action {} finished successfully'.format(env.name)))
-__all__ = ['BaseAmaContext', 'env', 'notifier']
+atexit.register(lambda: notifier.info('Action {} finished successfully'.format(conf.job_metadata.actionName)))
+__all__ = ['BaseAmaContext', 'conf', 'notifier']

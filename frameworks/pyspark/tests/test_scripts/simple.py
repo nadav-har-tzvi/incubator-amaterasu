@@ -14,4 +14,4 @@ schema = StructType([
 input_df = ama_context.spark.createDataFrame(a, schema)
 sdf = input_df.withColumn("pow_number", pow_udf("number"))
 
-ama_context.persist('simple_test', 'powered_df', sdf, overwrite=True)
+ama_context.persist('odd', sdf, overwrite=True)
