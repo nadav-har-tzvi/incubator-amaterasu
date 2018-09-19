@@ -44,3 +44,11 @@ class TestAmaSparkContextPersistence(BaseSparkUnitTest):
         input_list = input_df.select('number').collect()
         stored_list = stored_df.select('number').orderBy('number').collect()
         self.assertEqual(input_list, stored_list)
+
+    def test_ama_context_write_without_export_name_should_use_name_from_datastores_yml(self):
+        a = [[1], [2], [3], [4]]
+        schema = StructType([
+            StructField('number', IntegerType(), True)
+        ])
+        input_df = ama_context.spark.createDataFrame(a, schema)
+        ama_context.persist(env.workingDir, env.name, input_df)

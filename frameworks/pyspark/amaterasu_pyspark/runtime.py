@@ -33,11 +33,14 @@ class AmaContext(BaseAmaContext):
         :type format: str
         :return:
         """
+        if dataset_name in env.exports:
+            format = env.exports[dataset_name]
+
         writer = dataset.write.format(format)
         if overwrite:
             writer = writer.mode('overwrite')
         writer.save(
-            env.workingDir + "/" + env.name + "/" + action_name + "/" + dataset_name)
+            env.workingDir + "/" + env.jobId + "/" + action_name + "/" + dataset_name)
 
 
 ama_context = AmaContext()
