@@ -12,7 +12,7 @@ abstract class BasePythonRunnerProvider : RunnerSetupProvider {
         return arrayOf("python_sdk.zip")
     }
 
-    fun getActionDependencies(jobId: String, actionData: ActionData) {
-        actionData
+    override fun getActionDependencies(jobId: String?, actionData: ActionData?): Array<String> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

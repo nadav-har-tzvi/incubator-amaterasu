@@ -8,6 +8,9 @@ import org.apache.amaterasu.sdk.frameworks.configuration.DriverConfiguration
 import java.io.File
 
 class PythonSetupProvider : FrameworkSetupProvider {
+    override fun getEnvironmentVariables(): MutableMap<String, String> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
     var env: String? = null
     var conf: ClusterConfig? = null
