@@ -10,9 +10,9 @@ setup(
     author_email="dev@amaterasu.incubator.apache.org",
     description='Apache Amaterasu (incubating) is an open source, configuration managment and deployment framework for big data pipelines',
     python_requires='!=3.0.*, !=3.1.*, !=3.2.*, <4',
-    install_requires=['amaterasu-sdk'],
+    install_requires=['amaterasu-sdk==0.2.0-incubating-rc4', 'pyspark >= 2'],
     test_requires=['virtualenv'],
-    entry_points={'amaterasu.plugins': 'pyspark=amaterasu_pyspark.pyspark'},
+    entry_points={'amaterasu.plugins': 'pyspark=amaterasu_pyspark'},
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',

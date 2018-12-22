@@ -1,10 +1,11 @@
 package org.apache.amaterasu.frameworks.python.dispatcher.runners.providers
 
+import org.apache.amaterasu.common.configuration.ClusterConfig
 import org.apache.amaterasu.common.dataobjects.ActionData
 
-open class PythonRunnerProvider: BasePythonRunnerProvider() {
+open class BasicPythonRunnerProvider(env: String?, conf: ClusterConfig?): PythonRunnerProviderBase(env, conf) {
     override fun getActionResources(jobId: String?, actionData: ActionData?): Array<String> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return Array(0) { _ -> ""}
     }
 
     override fun getCommand(jobId: String?, actionData: ActionData?, env: String?, executorId: String?, callbackAddress: String?): String {
@@ -17,6 +18,5 @@ open class PythonRunnerProvider: BasePythonRunnerProvider() {
         resources[resources.size] = "runtime.zip"
         return resources
     }
-
 
 }

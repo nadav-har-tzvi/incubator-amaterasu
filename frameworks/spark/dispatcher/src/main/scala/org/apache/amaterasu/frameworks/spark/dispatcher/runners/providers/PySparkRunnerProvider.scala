@@ -4,11 +4,11 @@ import java.net.URLEncoder
 
 import org.apache.amaterasu.common.configuration.ClusterConfig
 import org.apache.amaterasu.common.dataobjects.ActionData
-import org.apache.amaterasu.frameworks.python.dispatcher.runners.providers.{BasePythonRunnerProvider}
+import org.apache.amaterasu.frameworks.python.dispatcher.runners.providers.{PythonRunnerProviderBase}
 import org.apache.amaterasu.leader.common.utilities.DataLoader
 import org.apache.hadoop.yarn.api.ApplicationConstants
 
-class PySparkRunnerProvider extends BasePythonRunnerProvider {
+class PySparkRunnerProvider extends PythonRunnerProviderBase {
 
   private var conf: ClusterConfig = _
   private val libPath = System.getProperty("java.library.path")

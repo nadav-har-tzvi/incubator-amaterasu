@@ -10,7 +10,7 @@ setup(
     author_email="dev@amaterasu.incubator.apache.org",
     description='Apache Amaterasu (incubating) is an open source, configuration managment and deployment framework for big data pipelines',
     python_requires='!=3.0.*, !=3.1.*, !=3.2.*, <4',
-    install_requires=['stomp.py'],
+    install_requires=['stomp.py', 'pyYaml', 'munch'],
     entry_points={
         'console_scripts': [
             'ama-runner=amaterasu.main:main '

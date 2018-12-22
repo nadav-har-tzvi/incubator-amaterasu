@@ -1,23 +1,25 @@
 package org.apache.amaterasu.frameworks.python.dispatcher
-
+import io.mockk.mockkStatic
+import org.apache.amaterasu.common.configuration.ClusterConfig
 import org.apache.amaterasu.common.configuration.enums.ActionStatus
 import org.apache.amaterasu.common.dataobjects.ActionData
-import org.apache.amaterasu.frameworks.python.dispatcher.runners.providers.PythonRunnerProvider
+import org.apache.amaterasu.frameworks.python.dispatcher.runners.providers.BasicPythonRunnerProvider
+import org.apache.amaterasu.leader.common.utilities.DataLoader
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
-import org.junit.platform.runner.JUnitPlatform
-import org.junit.runner.RunWith
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 
-@RunWith(JUnitPlatform::class)
-class PythonRunnerProviderTests: Spek({
+class BasicPythonRunnerProviderTests: Spek({
 
     given("A python runner provider") {
-        val runner = PythonRunnerProvider()
+        mockkStatic(DataLoader) {
+
+        }
+        val runner = BasicPythonRunnerProvider("test", ClusterConfig())
         on("Asking to run a simple python script with dummy actionData") {
             val command = runner.getCommand("AAAA",
                     ActionData(ActionStatus.pending(),

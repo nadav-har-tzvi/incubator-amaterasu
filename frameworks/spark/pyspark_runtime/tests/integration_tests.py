@@ -14,58 +14,39 @@ import glob
 import os
 
 venv_dir = '/tmp/ama_test_dir/venv'
-
+PYTHON_EXEC = '{}/bin/python'.format(venv_dir)
 
 def _create_amaterasu_venv():
     create_environment(venv_dir)
-    make_environment_relocatable(venv_dir)
-    activate_script = os.path.join(venv_dir, "bin", "activate_this.py")
-    with open(activate_script, 'r') as f:
-        exec(f.read())
-    pip._internal.main(['install', '../'])
+    pip_path = '{}/bin/pip'.format(venv_dir)
+    _run_program(pip_path, 'install', '-U', '../../../../sdk_python/')
+    _run_program(pip_path, 'install', '-U', '../')
 
 
 def setUpModule():
     _create_amaterasu_venv()
-    dir_path = os.path.dirname(__file__)
-    path = os.path.normpath(dir_path + '/' + os.pardir + '/dist/amaterasu_pyspark*.zip')
-    ama_pyspark_package = glob.glob(path)[0]
-    shutil.copy(ama_pyspark_package, '.')
+
+# def tearDownModule():
+#     shutil.rmtree(venv_dir)
 
 
-def tearDownModule():
-    shutil.rmtree(venv_dir)
-    dir_path = os.path.dirname(__file__)
-    path = os.path.normpath(dir_path + '/amaterasu_pyspark*.zip')
-    ama_pyspark_package = glob.glob(path)[0]
-    os.remove(ama_pyspark_package)
-
-
-def _run_program(program, *args):
+def _run_program(program, *args, **kwargs):
+    extra_env = kwargs.get('env', {})
+    env = os.environ.copy()
+    env.update(extra_env)
     if sys.version_info.minor >= 5:
-        subprocess.run((program, *args))
+        subprocess.run((program, *args), env=env)
     else:
-        subprocess.call((program, *args))
+        subprocess.call((program, *args), env=env)
 
 
-class ActualScriptsNoSparkSubmit(TestCase):
-
-    VENV_ZIP_PATH = '/tmp/amaterasu_venv.zip'
-
-    @classmethod
-    def setUpClass(cls):
-        with open(cls.VENV_ZIP_PATH, 'wb') as f:
-            zipf = zipfile.ZipFile(f, mode='w')
-            zipf.write(venv_dir)
-
-
-    @classmethod
-    def tearDownClass(cls):
-        os.remove(cls.VENV_ZIP_PATH)
-
+class ScriptsWithSparkSubmit(TestCase):
 
     def test_simple_script_with_spark_submit_should_persist_list_of_squares(self):
-        _run_program('spark-submit', '--files', self.VENV_ZIP_PATH, 'test_scripts/simple.py')
+        spark_submit = '{}/bin/spark-submit'
+        _run_program('spark-submit', 'test_scripts/simple.py', env={
+            'PYSPARK_PYTHON': PYTHON_EXEC,
+        })
         sdf = ama_context.get_dataset(conf.job_metadata.actionName, 'odd')
         stored_list = sdf.select('pow_number').orderBy('pow_number').rdd.flatMap(lambda x: x).collect()
         expected_list = [1, 4, 9, 16]
@@ -77,12 +58,11 @@ class ActualScriptsNoSparkSubmit(TestCase):
 class ActualScriptsTests(TestCase):
 
 
-
     def tearDown(self):
         shutil.rmtree(conf.env.workingDir.split('file://')[1])
 
     def test_simple_script(self):
-        _run_program('python', 'test_scripts/simple.py')
+        _run_program(PYTHON_EXEC, 'test_scripts/simple.py')
         sdf = ama_context.get_dataset(conf.job_metadata.actionName, 'odd')
         stored_list = sdf.select('pow_number').orderBy('pow_number').rdd.flatMap(lambda x: x).collect()
         expected_list = [1, 4, 9, 16]
