@@ -14,12 +14,26 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 """
+import os
+
 from setuptools import setup, find_packages
+
+src_path = 'src'
+
+
+def list_packages():
+    for root, _, _ in os.walk(src_path):
+        yield '.'.join(os.path.relpath(root, src_path).split(os.path.sep))
+
+
+packages = list(find_packages()) + list(list_packages())
+
 
 setup(
     name='amaterasu_pyspark',
     version='0.2.0-incubating-rc4',
-    packages=find_packages(),
+    packages=packages,
+    package_dir={'': src_path},
     url='https://github.com/apache/incubator-amaterasu',
     license='Apache License 2.0 ',
     author='Apache Amaterasu (incubating)',
@@ -28,7 +42,6 @@ setup(
     python_requires='>=3.4.*, <4',
     install_requires=['amaterasu-sdk==0.2.0-incubating-rc4', 'pyspark==2.2.1'],
     test_requires=['virtualenv'],
-    entry_points={'amaterasu.plugins': 'pyspark=amaterasu_pyspark'},
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',

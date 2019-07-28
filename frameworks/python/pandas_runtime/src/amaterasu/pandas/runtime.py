@@ -20,7 +20,7 @@ from amaterasu.base import LoaderAmaContext, BaseAmaContextBuilder
 
 class AmaContextBuilder(BaseAmaContextBuilder):
 
-    def build(self):
+    def build(self) -> "AmaContext":
         return AmaContext(self.ama_conf)
 
 

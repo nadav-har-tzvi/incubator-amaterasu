@@ -17,14 +17,22 @@
 import os
 import sys
 
-import pathlib
+import glob
 from setuptools import setup, find_packages
-for p in pathlib.Path('./amaterasu').glob('**/*.pyi'):
-    print(str(p))
+
+src_path = 'src'
+
+def list_packages():
+    for root, _, _ in os.walk(src_path):
+        yield '.'.join(os.path.relpath(root, src_path).split(os.path.sep))
+
+packages = list(find_packages()) + list(list_packages())
+
 setup(
     name='amaterasu-sdk',
     version='0.2.0-incubating-rc4',
-    packages=find_packages(),
+    package_dir={'': src_path},
+    packages=packages,
     url='https://github.com/apache/incubator-amaterasu',
     license='Apache License 2.0',
     author='Apache Amaterasu (incubating)',
@@ -32,12 +40,9 @@ setup(
     description='Apache Amaterasu (incubating) is an open source, configuration managment and deployment framework for big data pipelines',
     python_requires='>=3.4.*, <4',
     install_requires=['stomp.py', 'pyYaml', 'munch'],
-    data_files=[
-        (
-            'shared/typehints/python{}.{}'.format(*sys.version_info[:2]),
-            pathlib.Path('./amaterasu').glob('**/*.pyi'),
-        ),
-    ],
+    package_data={
+        '': ['*.pyi', 'py.typed']
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
@@ -47,6 +52,7 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS :: MacOS X',
         'Programming Language :: Java',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
